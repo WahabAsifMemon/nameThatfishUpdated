@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SupportController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -33,9 +35,13 @@ Route::post('change-pass', [AuthController::class, 'changePass']);
 Route::post('mail', [AuthController::class, 'send']);
 Route::post('forgot-password', [AuthController::class, 'forgetPass']);
 Route::delete('user/{id}',  [AuthController::class, 'delete']);
-
-
 Route::post('add_role', [AuthController::class, 'add_role']);
+
+// Support Api
+Route::post('/support', [SupportController::class, 'create']);
+
+
+
 
 
 
