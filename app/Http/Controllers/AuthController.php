@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\support\Facades\Hash;
-use App\Models\User;
-use App\Models\Otp;
-use Illuminate\support\Facades\Auth;
-use Laravel\Passport\TokenRepository;
 use App\Mail\SendMail;
+use App\Models\Otp;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\support\Facades\Auth;
+use Illuminate\support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+use Laravel\Passport\TokenRepository;
 use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
-
     public function add_role(Request $request)
     {
         try {
@@ -23,7 +22,7 @@ class AuthController extends Controller
                 'name' => $request->role,
                 'guard_name' => 'api',
             ]);
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'Role created successfully',
@@ -35,8 +34,8 @@ class AuthController extends Controller
             ], 400);
         }
     }
-    
-    
+
+
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -47,11 +46,11 @@ class AuthController extends Controller
             'password_confirmation' => 'required|string|min:6',
             'role' => 'required',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-    
+
         try {
             $user = new User([
                 'name' => $request->name,
@@ -80,7 +79,7 @@ class AuthController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }
-    
+
     public function login()
     {
         $credentials = request(['email', 'password']);
@@ -123,7 +122,7 @@ class AuthController extends Controller
             'new_password' => 'required|min:8',
             'confirm_password' => 'required|same:new_password',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 "status" => 400,
@@ -131,9 +130,9 @@ class AuthController extends Controller
                 "data" => []
             ]);
         }
-    
+
         $user = Auth::guard('api')->user();
-    
+
         if (!Hash::check($request->input('old_password'), $user->password)) {
             return response()->json([
                 "status" => 400,
@@ -141,7 +140,7 @@ class AuthController extends Controller
                 "data" => []
             ]);
         }
-    
+
         if (Hash::check($request->input('new_password'), $user->password)) {
             return response()->json([
                 "status" => 400,
@@ -149,7 +148,7 @@ class AuthController extends Controller
                 "data" => []
             ]);
         }
-    
+
         try {
             $user->update(['password' => Hash::make($request->input('new_password'))]);
             return response()->json([
@@ -166,27 +165,27 @@ class AuthController extends Controller
             ]);
         }
     }
-    
+
 
     function send(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|exists:users,email',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['message' => $validator->errors()], 400);
         }
-    
+
         $otp = rand(pow(10, 4 - 1), pow(10, 4) - 1);
         $data = array(
             'otp' => $otp,
             'message' => 'Your Otp Code For Forget Password'
         );
-    
+
         try {
             $existingOtpRecord = Otp::where('email', $request->email)->first();
-    
+
             if ($existingOtpRecord) {
                 $existingOtpRecord->otp = $otp;
                 $existingOtpRecord->save();
@@ -196,16 +195,16 @@ class AuthController extends Controller
                 $otpRecord->otp = $otp;
                 $otpRecord->save();
             }
-    
+
             // Send email with OTP
             Mail::to($request->email)->send(new SendMail($data));
-    
+
             return response()->json(['status' => 'success', 'message' => 'Email sent successfully']);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }
-    
+
 
     public function forgetPass(Request $request)
     {
@@ -215,38 +214,38 @@ class AuthController extends Controller
             'password' => 'required|min:6|max:100',
             'confirm_password' => 'required|same:password',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['message' => $validator->errors()], 400);
         }
-    
+
         try {
             $otpRecord = Otp::where('email', $request->email)->first();
             if (!$otpRecord) {
                 return response()->json(['message' => 'User not found'], 404);
             }
-    
+
             if ($otpRecord->otp != $request->otp) {
                 return response()->json(['message' => 'OTP does not match'], 400);
             }
-    
+
             $user = User::where('email', $request->email)->first();
             if (!$user) {
                 return response()->json(['message' => 'User not found'], 404);
             }
-    
+
             $user->update([
                 'password' => Hash::make($request->password)
             ]);
             $otpRecord->otp = $request->otp;
             $otpRecord->update();
-    
+
             return response()->json(['message' => 'Forget Password Successfully'], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 401);
         }
     }
-    
+
     public function delete($id)
     {
         $user = User::find($id);
