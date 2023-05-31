@@ -42,7 +42,9 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string',
             'email' => 'required|string|unique:users',
-            'password' => 'required|string|min:6',
+            'phone' => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+            'password_confirmation' => 'required|string|min:6',
             'role' => 'required',
         ]);
     
@@ -56,7 +58,18 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => $request->role,
+                'phone' => $request->phone,
+                'dob' => $request->dob,
+                'from' => $request->from,
+                'status' => 1,
             ]);
+
+            if ($request->hasFile('user_img')) {
+                $image = $request->file('user_img');
+                $path = $image->store('user_img', 'public');
+                $user->user_img = $path;
+            }
+
             $user->save();
             $role = Role::where('name', $request->role)->where('guard_name', 'api')->first();
             if ($role) {
