@@ -220,7 +220,6 @@ class AuthController extends Controller
                 $otpRecord->save();
             }
 
-            // Send email with OTP
             Mail::to($request->email)->send(new SendMail($data));
 
             return response()->json(['status' => 'success', 'message' => 'Email sent successfully']);
