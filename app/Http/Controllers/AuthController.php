@@ -40,17 +40,31 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string',
-            'email' => 'required|string|unique:users',
+            'email' => 'required|string',
             'phone' => 'required|string',
             'password' => 'required|string|min:6|confirmed',
             'password_confirmation' => 'required|string|min:6',
             'role' => 'required',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-
+    
+        $existingUser = User::where('email', $request->email)->first();
+    
+        if ($existingUser && $existingUser->status == 0) {
+            $existingUser->status = 1;
+            $existingUser->password = Hash::make($request->password);
+            $existingUser->name = $request->name;
+            $existingUser->phone = $request->phone;
+            $existingUser->dob = $request->dob;
+            $existingUser->from = $request->from;
+            $existingUser->save();
+    
+            return response()->json(['message' => 'Account activated. You can now log in'], 200);
+        }
+    
         try {
             $user = new User([
                 'name' => $request->name,
@@ -62,13 +76,13 @@ class AuthController extends Controller
                 'from' => $request->from,
                 'status' => 1,
             ]);
-
+    
             if ($request->hasFile('user_img')) {
                 $image = $request->file('user_img');
                 $path = $image->store('user_img', 'public');
                 $user->user_img = $path;
             }
-
+    
             $user->save();
             $role = Role::where('name', $request->role)->where('guard_name', 'api')->first();
             if ($role) {
@@ -79,19 +93,26 @@ class AuthController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }
+    
 
     public function login()
     {
         $credentials = request(['email', 'password']);
-
+    
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
+    
+            if ($user->status == 0) {
+                return response()->json(['error' => 'Unauthorized: Account deleted'], 401);
+            }
+    
             $token = $user->createToken('MyApp')->accessToken;
             return response()->json(['message' => 'User Profile', 'token' => $token], 200);
         } else {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Unauthorized: Invalid credentials'], 401);
         }
     }
+    
 
     public function profile()
     {
@@ -246,14 +267,27 @@ class AuthController extends Controller
         }
     }
 
-    public function delete($id)
+    public function delete(Request $request, $id)
     {
         $user = User::find($id);
+    
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-        $user->delete();
-        return response()->json(['message' => 'User deleted successfully'], 200);
+    
+        if ($user->status == 1) {
+            $user->status = 0;
+            $user->save();
+    
+            return response()->json(['message' => 'Account deleted successfully', 'status' => $user->status]);
+        } else {
+            $user->status = 1;
+            $user->save();
+    
+            return response()->json(['message' => 'User account registration enabled', 'status' => $user->status]);
+        }
     }
+    
+
 
 }

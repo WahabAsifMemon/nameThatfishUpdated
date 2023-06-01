@@ -40,6 +40,10 @@ Route::post('add_role', [AuthController::class, 'add_role']);
 // Support Api
 Route::post('/support', [SupportController::class, 'create']);
 
+// Delete Account
+Route::delete('/user/{id}', [AuthController::class, 'delete']);
+
+
 
 
 
