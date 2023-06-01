@@ -118,6 +118,9 @@ class AuthController extends Controller
     {
         try {
             $u = Auth::user();
+              if ($u->status == 0) {
+                return response()->json(['error' => 'Unauthorized: Account deleted'], 401);
+            }
             return $u;
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 401);
