@@ -51,4 +51,9 @@ class User extends Authenticatable
 	public function getHidden() {
 		return $this->hidden;
 	}
+
+    // public function roles()
+    // {
+    //     return $this->belongsToMany(Role::class);
+    // }
 }
