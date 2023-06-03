@@ -37,21 +37,21 @@
 								<table class="table table-bordernone">
 									<tbody>
 										@foreach(App\Models\User::all() as $user)
-											@if($user->hasRole('user'))
-										<tr>
-											<td>
-												<img class="img-fluid img-40 rounded-circle mb-3" src="{{asset('assets/images/appointment/app-ent.jpg')}}" alt="Image description">
-												<div class="status-circle bg-primary"></div>
-											</td>
-											<td class="img-content-box"><span class="d-block">{{ $user->name }}</span><span class="font-roboto">Now</span></td>
-											<td>
-												<p class="m-0 font-primary">{{$user->created_at}}</p>
-											</td>
-											<td class="text-end">
-												<div class="button btn btn-primary">Done<i class="fa fa-check-circle ms-2"></i></div>
-											</td>
-										</tr>
-										@endif
+											@if($user->role_id == 2)
+												<tr>
+													<td>
+														<img class="img-fluid img-40 rounded-circle mb-3" src="{{asset('assets/images/appointment/app-ent.jpg')}}" alt="Image description">
+														<div class="status-circle bg-primary"></div>
+													</td>
+													<td class="img-content-box"><span class="d-block">{{ $user->name }}</span><span class="font-roboto">Now</span></td>
+													<td>
+														<p class="m-0 font-primary">{{$user->created_at}}</p>
+													</td>
+													<td class="text-end">
+														<div class="button btn btn-primary">Done<i class="fa fa-check-circle ms-2"></i></div>
+													</td>
+												</tr>
+											@endif
 										@endforeach
 									</tbody>
 								</table>

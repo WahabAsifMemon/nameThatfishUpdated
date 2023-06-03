@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Mail\SendMail;
 use App\Models\Otp;
 use App\Models\User;
+// use App\Models\Role;
+
 use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
 use Illuminate\support\Facades\Hash;
@@ -12,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\TokenRepository;
 use Spatie\Permission\Models\Role;
+
 
 
 class AuthController extends Controller
@@ -45,7 +48,7 @@ class AuthController extends Controller
             'phone' => 'required|string',
             'password' => 'required|string|min:6|confirmed',
             'password_confirmation' => 'required|string|min:6',
-            'role' => 'required',
+            'role_id' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -71,7 +74,7 @@ class AuthController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => $request->role,
+                'role_id' => $request->role_id,
                 'phone' => $request->phone,
                 'dob' => $request->dob,
                 'from' => $request->from,
@@ -85,12 +88,12 @@ class AuthController extends Controller
             }
 
             $user->save();
-            $role = Role::where('name', $request->role)->where('guard_name', 'api')->first();
+            $role = Role::where(['id'=>$request->role_id,'guard_name'=>'api'])->first();
             if ($role) {
                 $user->assignRole($role);
             }
 
-            if ($role && $role->name === 'admin') {
+            if ($role->id == 1) {
                 return response()->json(['message' => 'User has been registered as an admin'], 200);
             } else {
                 return response()->json(['message' => 'User has been registered as a regular user'], 200);
@@ -108,7 +111,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if ($user && $user->hasRole('admin')) {
+        if ($user && $user->role_id == 1) {
             return response()->json(['error' => 'Unauthorized: Admin login not allowed'], 401);
         }
 
@@ -121,7 +124,7 @@ class AuthController extends Controller
 
             $token = $user->createToken('MyApp')->accessToken;
 
-            if ($user->hasRole('admin')) {
+            if ($user->role_id == 1) {
                 return response()->json(['message' => 'Admin logged in', 'token' => $token], 200);
             } else {
                 return response()->json(['message' => 'User logged in', 'token' => $token], 200);
@@ -133,18 +136,28 @@ class AuthController extends Controller
 
 
 
-    public function profile()
-    {
-        try {
-            $u = Auth::user();
-            if ($u->status == 0) {
-                return response()->json(['error' => 'Unauthorized: Account deleted'], 401);
-            }
-            return $u;
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 401);
+public function profile()
+{
+    try {
+        $user = Auth::user();
+        $roleName = getRole($user->role_id);
+        
+
+        if ($user->status == 0) {
+            return response()->json(['error' => 'Unauthorized: Account deleted'], 401);
         }
+
+        return response()->json([
+            'user' => $user,
+            'role' => $roleName
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 401);
     }
+}
+
+
 
     public function logout(Request $request)
     {

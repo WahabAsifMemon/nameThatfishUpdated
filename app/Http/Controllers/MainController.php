@@ -126,5 +126,30 @@ class MainController extends Controller
         }
         return redirect()->route('about.from');
     }
+
+    public function managment(Type $var = null)
+    {
+        return view('dashboard.managment');
+        
+    }
+
+   public function updateStatus(Request $request, $id)
+    {
+        // Find the user by ID
+        $user = User::findOrFail($id);
+
+        // Update the status
+        $status = $request->input('status');
+        $user->status = $status;
+        $user->save();
+
+        // Return a response
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'status' => $user->status,
+            ],
+        ]);
+    }
     
 }

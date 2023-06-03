@@ -35,6 +35,8 @@
 
 					<li class="sidebar-list"><a class="sidebar-link sidebar-title link-nav  {{ Route::currentRouteName()=='about' }}" href="{{route('about')}}"><i data-feather="server"> </i><span>{{ trans('About') }}</span></a></li>
 
+					<li class="sidebar-list"><a class="sidebar-link sidebar-title link-nav  {{ Route::currentRouteName()=='user_managment' }}" href="{{route('user_managment')}}"><i data-feather="server"> </i><span>{{ trans('User Managementwww') }}</span></a></li>
+
 					
 			</div>
 			<div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>

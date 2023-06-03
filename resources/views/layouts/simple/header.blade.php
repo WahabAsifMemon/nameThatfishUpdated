@@ -1,3 +1,4 @@
+@php($role = \App\Models\Role::where('id',Auth::user()->role_id)->first())
 <div class="page-header">
   <div class="header-wrapper row m-0">
     <form class="form-inline search-full col" action="#" method="get">
@@ -68,7 +69,7 @@
             <img class="b-r-10" src="{{asset('assets/images/dashboard/profile.jpg')}}" alt="">
             <div class="media-body">
               <span>{{Auth::user()->name}}</span>
-              <p class="mb-0 font-roboto">{{Auth::user()->role}}<i class="middle fa fa-angle-down"></i></p>
+            <p class="mb-0 font-roboto">{{ getRole(Auth::user()->role_id) }}<i class="middle fa fa-angle-down"></i></p>
             </div>
           </div>
           <ul class="profile-dropdown onhover-show-div">
