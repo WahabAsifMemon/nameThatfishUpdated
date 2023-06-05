@@ -1,4 +1,8 @@
-@php($role = \App\Models\Role::where('id',Auth::user()->role_id)->first())
+@php
+    $user = auth()->user();
+    $role = $user ? \App\Models\Role::where('id', $user->role_id)->first() : null;
+@endphp
+
 <div class="page-header">
   <div class="header-wrapper row m-0">
     <form class="form-inline search-full col" action="#" method="get">
@@ -29,7 +33,9 @@
            
           </div>
         </li>
-        <li>                         <span class="header-search"><i data-feather="search"></i></span></li>
+        <li>
+          <span class="header-search"><i data-feather="search"></i></span>
+        </li>
         <li class="onhover-dropdown">
           <div class="notification-box"><i data-feather="bell"> </i><span class="badge rounded-pill badge-secondary">4</span></div>
         </li>
@@ -68,8 +74,8 @@
           <div class="media profile-media">
             <img class="b-r-10" src="{{asset('assets/images/dashboard/profile.jpg')}}" alt="">
             <div class="media-body">
-              <span>{{Auth::user()->name}}</span>
-            <p class="mb-0 font-roboto">{{ getRole(Auth::user()->role_id) }}<i class="middle fa fa-angle-down"></i></p>
+              <span>{{ $user ? $user->name : ''  }}</span>
+              <p class="mb-0 font-roboto">{{ $role ? $role->name : '' }}<i class="middle fa fa-angle-down"></i></p>
             </div>
           </div>
           <ul class="profile-dropdown onhover-show-div">

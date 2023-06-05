@@ -26,6 +26,9 @@ Route::group([
 ], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register']);
+    Route::post('/google-login', [AuthController::class, 'googleLogin']);
+
+
 });
 Route::middleware('auth:api')->group(function () {
 Route::get('logout', [AuthController::class, 'logout']);
@@ -42,6 +45,15 @@ Route::post('/support', [SupportController::class, 'create']);
 
 // Delete Account
 Route::delete('/user/{id}', [AuthController::class, 'delete']);
+
+Route::post('image-upload', [AuthController::class, 'uploadImage']);
+Route::post('image-upload-64', [AuthController::class, 'react_image_upload']);
+Route::post('user-update', [AuthController::class, 'user_update']);
+
+
+
+
+
 
 
 

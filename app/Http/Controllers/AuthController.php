@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Mail\SendMail;
 use App\Models\Otp;
 use App\Models\User;
-// use App\Models\Role;
-
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
 use Illuminate\support\Facades\Hash;
@@ -14,8 +14,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\TokenRepository;
 use Spatie\Permission\Models\Role;
-
-
 
 class AuthController extends Controller
 {
@@ -39,13 +37,12 @@ class AuthController extends Controller
         }
     }
 
-
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
-            'email' => 'required|string',
-            'phone' => 'required|string',
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'required|unique:users,phone',
             'password' => 'required|string|min:6|confirmed',
             'password_confirmation' => 'required|string|min:6',
             'role_id' => 'required',
@@ -63,12 +60,12 @@ class AuthController extends Controller
             $existingUser->name = $request->name;
             $existingUser->phone = $request->phone;
             $existingUser->dob = $request->dob;
-            $existingUser->from = $request->from;
+            $existingUser->address = $request->address;
+            $existingUser->user_img = $request->user_img;
             $existingUser->save();
 
             return response()->json(['message' => 'Account activated. You can now log in'], 200);
         }
-
         try {
             $user = new User([
                 'name' => $request->name,
@@ -77,18 +74,13 @@ class AuthController extends Controller
                 'role_id' => $request->role_id,
                 'phone' => $request->phone,
                 'dob' => $request->dob,
-                'from' => $request->from,
+                'address' => $request->address,
                 'status' => 1,
+                'user_img' => $request->user_img,
             ]);
 
-            if ($request->hasFile('user_img')) {
-                $image = $request->file('user_img');
-                $path = $image->store('user_img', 'public');
-                $user->user_img = $path;
-            }
-
             $user->save();
-            $role = Role::where(['id'=>$request->role_id,'guard_name'=>'api'])->first();
+            $role = Role::where(['id' => $request->role_id, 'guard_name' => 'api'])->first();
             if ($role) {
                 $user->assignRole($role);
             }
@@ -103,6 +95,33 @@ class AuthController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }
+
+    public function googleLogin(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'google_id' => 'required',
+        ]);
+
+        $user = User::where('email', $request->input('email'))->first();
+
+        if (!$user) {
+            // Create a new user with the provided data
+            $user = new User();
+            $user->name = $request->input('name');
+            $user->email = $request->input('email');
+            $user->google_id = $request->input('google_id');
+            // Set other relevant user properties
+
+            // Save the user to the database
+            $user->save();
+        }
+
+        // Return a response indicating successful user creation or any additional information you want to provide
+        return response()->json(['message' => 'User created successfully']);
+    }
+
 
 
     public function login()
@@ -134,30 +153,45 @@ class AuthController extends Controller
         }
     }
 
-
-
-public function profile()
-{
-    try {
-        $user = Auth::user();
-        $roleName = getRole($user->role_id);
-        
-
-        if ($user->status == 0) {
-            return response()->json(['error' => 'Unauthorized: Account deleted'], 401);
+    public function profile()
+    {
+        try {
+            $user = auth()->user();
+            return response()->json([
+                'success' => true,
+                'message' => 'Data fetched successfully.',
+                'data' => $user
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json
+            (['success' => false, 'messsage' => $e->getMessage()], 403);
         }
 
-        return response()->json([
-            'user' => $user,
-            'role' => $roleName
-        ]);
-
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 401);
     }
-}
 
+    public function user_update(Request $request)
+    {
+        try {
+            $input = $request->all();
+            $rules = array(
+                'id' => "required",
+            );
+            $validator = Validator::make($input, $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please see errors parameter for all errors.',
+                    'errors' => $validator->errors()
+                ], 400);
+            } else {
+                User::Where('id', $request->id)->update($input);
+                return response()->json(['success' => true, 'messsage' => 'User update successfully'], 200);
+            }
 
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'messsage' => $e->getMessage()], 403);
+        }
+    }
 
     public function logout(Request $request)
     {
@@ -222,7 +256,6 @@ public function profile()
         }
     }
 
-
     function send(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -259,7 +292,6 @@ public function profile()
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }
-
 
     public function forgetPass(Request $request)
     {
@@ -320,6 +352,45 @@ public function profile()
 
             return response()->json(['message' => 'User account registration enabled', 'status' => $user->status]);
         }
+    }
+
+    public function uploadImage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|image:jpeg,png,jpg,gif,svg'
+        ]);
+        if ($validator->fails()) {
+            return $validator->messages();
+        }
+        $uploadFolder = 'images';
+        $image = $request->file('image');
+        $image_uploaded_path = $image->store($uploadFolder, 'public');
+        $uploadedImageResponse = array(
+            "image_name" => basename($image_uploaded_path),
+            "image_url" => env('APP_URL') . "/public/storage/images/" . basename($image_uploaded_path),
+            "mime" => $image->getClientMimeType()
+        );
+        return response()->json(['message' => 'File Uploaded Successfully', 'data' => $uploadedImageResponse], 200);
+    }
+
+    public function react_image_upload(Request $request)
+    {
+        $image = $request->image;
+        $image = str_replace('data:image/png;base64,', '', $image);
+        $image = str_replace(' ', '+', $image);
+        $mytime = Carbon::now();
+        $imageName = $mytime->toDateTimeString() . '.png';
+        $imName = str_replace('_', ' ', $imageName);
+        $cImage = base64_decode($image);
+
+        Storage::disk('local')->put($imName, base64_decode($image));
+
+        $uploadedImageResponse = array(
+            "image_name" => basename($imName),
+            "image_url" => env('APP_URL') . "/public/storage/" . basename($imName),
+
+        );
+        return response()->json(['message' => 'File Uploaded Successfully', 'data' => $uploadedImageResponse], 200);
     }
 
 

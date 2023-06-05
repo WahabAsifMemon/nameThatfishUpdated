@@ -30,7 +30,7 @@
                     <tr>
                         <th class="sorting sorting_asc" tabindex="0" aria-controls="example" rowspan="1" colspan="1" style="width: 138px;">Name</th>
                         <th class="sorting" tabindex="0" aria-controls="example" rowspan="1" colspan="1" style="width: 221px;">Email</th>
-                        <th class="sorting" tabindex="0" aria-controls="example" rowspan="1" colspan="1" style="width: 78px;">Salary</th>
+                        <th class="sorting" tabindex="0" aria-controls="example" rowspan="1" colspan="1" style="width: 78px;">Phone</th>
                         <th class="sorting" tabindex="0" aria-controls="example" rowspan="1" colspan="1" style="width: 78px;">Role</th>
                         <th class="sorting" tabindex="0" aria-controls="example" rowspan="1" colspan="1" style="width: 78px;">Status</th>
                         <th class="sorting" tabindex="0" aria-controls="example" rowspan="1" colspan="1" style="width: 78px;">Created At</th>
@@ -43,7 +43,7 @@
                         <td class="sorting_1">{{$user->name}}</td>
                         <td>{{$user->email}}</td>
                         <td>{{$user->phone}}</td>
-                        <td>{{ getRole($user->role_id) }}</td>
+                        <td>{{ $user->role_id }}</td>
                         <td class="status-column">
                             @if($user->status == 1)
                                 <button class="btn btn-success status-btn" data-user-id="{{ $user->id }}" data-status="0">
