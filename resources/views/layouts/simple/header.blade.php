@@ -30,14 +30,7 @@
             <div class="current_lang">
               <div class="lang"><i class="flag-icon flag-icon-{{ (App::getLocale() == 'en') ? 'us' : App::getLocale() }}"></i><span class="lang-txt">{{ App::getLocale() }} </span></div>
             </div>
-           
           </div>
-        </li>
-        <li>
-          <span class="header-search"><i data-feather="search"></i></span>
-        </li>
-        <li class="onhover-dropdown">
-          <div class="notification-box"><i data-feather="bell"> </i><span class="badge rounded-pill badge-secondary">4</span></div>
         </li>
         <li class="onhover-dropdown">
           <div class="notification-box"><i data-feather="star"></i></div>
@@ -62,9 +55,6 @@
         </li>
         <li>
           <div class="mode"><i class="fa fa-moon-o"></i></div>
-        </li>
-        <li class="cart-nav onhover-dropdown">
-          <div class="cart-box"><i data-feather="shopping-cart"></i><span class="badge rounded-pill badge-primary">2</span></div>
         </li>
         <li class="onhover-dropdown">
           <i data-feather="message-square"></i>

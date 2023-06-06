@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\TokenRepository;
 use Spatie\Permission\Models\Role;
+use App\Http\Controllers\Type;
 
 class AuthController extends Controller
 {
@@ -41,8 +42,8 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|unique:users,phone',
+            'email' => 'required|string',
+            'phone' => 'required|string',
             'password' => 'required|string|min:6|confirmed',
             'password_confirmation' => 'required|string|min:6',
             'role_id' => 'required',
@@ -66,6 +67,7 @@ class AuthController extends Controller
 
             return response()->json(['message' => 'Account activated. You can now log in'], 200);
         }
+
         try {
             $user = new User([
                 'name' => $request->name,
@@ -77,9 +79,11 @@ class AuthController extends Controller
                 'address' => $request->address,
                 'status' => 1,
                 'user_img' => $request->user_img,
+                'device_token' => 'eHTHTrzYT_qw786ywVvida:APA91bEMNkQBG5fu0Fom2s17_mqygKhTmwDVk9lsHPYlUDPCD-29AXBn2JMG4yDaxxI3owsD8BBBx_maLQF4fPko7yRz8HNUxcmtgLemkfRqgPl5J-Ols7GMDmIb1qCHQVjQxHQbt3h2',
             ]);
 
             $user->save();
+
             $role = Role::where(['id' => $request->role_id, 'guard_name' => 'api'])->first();
             if ($role) {
                 $user->assignRole($role);
@@ -90,7 +94,6 @@ class AuthController extends Controller
             } else {
                 return response()->json(['message' => 'User has been registered as a regular user'], 200);
             }
-            return response()->json(['message' => 'User has been registered'], 200);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
@@ -103,26 +106,16 @@ class AuthController extends Controller
             'email' => 'required|email|unique:users,email',
             'google_id' => 'required',
         ]);
-
         $user = User::where('email', $request->input('email'))->first();
-
         if (!$user) {
-            // Create a new user with the provided data
             $user = new User();
             $user->name = $request->input('name');
             $user->email = $request->input('email');
             $user->google_id = $request->input('google_id');
-            // Set other relevant user properties
-
-            // Save the user to the database
             $user->save();
         }
-
-        // Return a response indicating successful user creation or any additional information you want to provide
         return response()->json(['message' => 'User created successfully']);
     }
-
-
 
     public function login()
     {
@@ -157,17 +150,22 @@ class AuthController extends Controller
     {
         try {
             $user = auth()->user();
+            if (!$user) {
+                throw new \Exception('User not found.');
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'Data fetched successfully.',
                 'data' => $user
             ], 200);
         } catch (\Exception $e) {
-            return response()->json
-            (['success' => false, 'messsage' => $e->getMessage()], 403);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 403);
         }
-
     }
+
 
     public function user_update(Request $request)
     {
@@ -341,15 +339,17 @@ class AuthController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
+        if ($user->role_id == 1) {
+            return response()->json(['message' => 'You Dont Delete Admin Account. '], 403);
+        }
+
         if ($user->status == 1) {
             $user->status = 0;
             $user->save();
-
             return response()->json(['message' => 'Account deleted successfully', 'status' => $user->status]);
         } else {
             $user->status = 1;
             $user->save();
-
             return response()->json(['message' => 'User account registration enabled', 'status' => $user->status]);
         }
     }
@@ -388,11 +388,7 @@ class AuthController extends Controller
         $uploadedImageResponse = array(
             "image_name" => basename($imName),
             "image_url" => env('APP_URL') . "/public/storage/" . basename($imName),
-
         );
         return response()->json(['message' => 'File Uploaded Successfully', 'data' => $uploadedImageResponse], 200);
     }
-
-
-
 }

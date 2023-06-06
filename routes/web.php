@@ -6,6 +6,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MainController;
+use App\Http\Controllers\NotificationController;
+
 
 
 Route::get('/', function () {
@@ -22,6 +24,10 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/term', [MainController::class, 'saveTerm' ] )->name('term.from');
     Route::get('/about', [MainController::class, 'about' ] )->name('about');
     Route::get('/user_managment', [MainController::class, 'managment' ] )->name('user_managment');
+    Route::get('/notification', [MainController::class, 'notification' ] )->name('notification');
+    Route::post('sendNotification', [NotificationController::class, 'sendNotification'])->name('send.notification');
+
+
 });
 
 Route::put('/users/{id}/status', [MainController::class, 'updateStatus'])->name('updateStatus');

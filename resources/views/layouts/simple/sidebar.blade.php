@@ -33,10 +33,11 @@
 
 					<li class="sidebar-list"><a class="sidebar-link sidebar-title link-nav  {{ Route::currentRouteName()=='term' }}" href="{{route('term')}}"><i data-feather="server"> </i><span>{{ trans('Terms') }}</span></a></li>
 
-					<li class="sidebar-list"><a class="sidebar-link sidebar-title link-nav  {{ Route::currentRouteName()=='about' }}" href="{{route('about')}}"><i data-feather="server"> </i><span>{{ trans('About') }}</span></a></li>
+					<li class="sidebar-list"><a class="sidebar-link sidebar-title link-nav  {{ Route::currentRouteName()=='about' }}" href="{{route('about')}}"><i data-feather="star"> </i><span>{{ trans('About') }}</span></a></li>
 
-					<li class="sidebar-list"><a class="sidebar-link sidebar-title link-nav  {{ Route::currentRouteName()=='user_managment' }}" href="{{route('user_managment')}}"><i data-feather="server"> </i><span>{{ trans('User Management') }}</span></a></li>
+					<li class="sidebar-list"><a class="sidebar-link sidebar-title link-nav  {{ Route::currentRouteName()=='user_managment' }}" href="{{route('user_managment')}}"><i data-feather="users"> </i><span>{{ trans('User Management') }}</span></a></li>
 
+					<li class="sidebar-list"><a class="sidebar-link sidebar-title link-nav  {{ Route::currentRouteName()=='notification' }}" href="{{route('notification')}}"><i data-feather="bell"> </i><span>{{ trans('Notifications') }}</span></a></li>
 					
 			</div>
 			<div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>

@@ -127,7 +127,7 @@ class MainController extends Controller
         return redirect()->route('about.from');
     }
 
-    public function managment(Type $var = null)
+    public function managment()
     {
         return view('dashboard.managment');
         
@@ -150,6 +150,12 @@ class MainController extends Controller
                 'status' => $user->status,
             ],
         ]);
+    }
+
+    public function notification()
+    {
+        return view('dashboard.notification');
+        
     }
     
 }
