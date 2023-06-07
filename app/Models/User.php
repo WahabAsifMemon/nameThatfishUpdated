@@ -21,7 +21,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'phone', 'role_id', 'dob', 'address','user_img', 'device_token',
+        'name', 'email', 'password', 'phone', 'dob', 'address','user_img', 'device_token', 'type',
     ];
 
     /**
@@ -52,8 +52,4 @@ class User extends Authenticatable
 		return $this->hidden;
 	}
 
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class);
-    }
 }

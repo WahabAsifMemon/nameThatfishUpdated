@@ -46,7 +46,7 @@ class AuthController extends Controller
             'phone' => 'required|string',
             'password' => 'required|string|min:6|confirmed',
             'password_confirmation' => 'required|string|min:6',
-            'role_id' => 'required',
+            'roles' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -73,7 +73,6 @@ class AuthController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role_id' => $request->role_id,
                 'phone' => $request->phone,
                 'dob' => $request->dob,
                 'address' => $request->address,
@@ -81,19 +80,9 @@ class AuthController extends Controller
                 'user_img' => $request->user_img,
                 'device_token' => 'eHTHTrzYT_qw786ywVvida:APA91bEMNkQBG5fu0Fom2s17_mqygKhTmwDVk9lsHPYlUDPCD-29AXBn2JMG4yDaxxI3owsD8BBBx_maLQF4fPko7yRz8HNUxcmtgLemkfRqgPl5J-Ols7GMDmIb1qCHQVjQxHQbt3h2',
             ]);
-
+            $user->assignRole($request->input('roles'));
             $user->save();
-
-            $role = Role::where(['id' => $request->role_id, 'guard_name' => 'api'])->first();
-            if ($role) {
-                $user->assignRole($role);
-            }
-
-            if ($role->id == 1) {
-                return response()->json(['message' => 'User has been registered as an admin'], 200);
-            } else {
-                return response()->json(['message' => 'User has been registered as a regular user'], 200);
-            }
+            return response()->json(['message' => 'User has been registered '], 200);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
@@ -120,29 +109,69 @@ class AuthController extends Controller
     public function login()
     {
         $credentials = request(['email', 'password']);
-
-        $user = User::where('email', $credentials['email'])->first();
-
-        if ($user && $user->role_id == 1) {
-            return response()->json(['error' => 'Unauthorized: Admin login not allowed'], 401);
-        }
-
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-
             if ($user->status == 0) {
                 return response()->json(['error' => 'Unauthorized: Account deleted'], 401);
             }
-
             $token = $user->createToken('MyApp')->accessToken;
-
-            if ($user->role_id == 1) {
-                return response()->json(['message' => 'Admin logged in', 'token' => $token], 200);
-            } else {
-                return response()->json(['message' => 'User logged in', 'token' => $token], 200);
-            }
+            return response()->json(['message' => 'User Profile', 'token' => $token], 200);
         } else {
-            return response()->json(['error' => 'Unauthorized: Invalid credentials'], 401);
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+    }
+
+    public function loginadmin(Request $request)
+    {
+        $input = $request->only(['email', 'password']);
+
+        $validate_data = [
+            'email' => 'required|email',
+            'password' => 'required|min:8',
+        ];
+
+        $validator = Validator::make($input, $validate_data);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please see errors parameter for all errors.',
+                'errors' => $validator->errors()
+            ]);
+        }
+        
+        $use = User::where([
+        ['email', $request->email]  ,
+        ['type', 'admin']
+        ])->first();
+        if(empty($use)){
+            return response()->json([
+                'success' => false,
+                'message' => 'User authentication failed.'
+            ], 401);
+        }
+
+        try{
+            // authentication attempt
+            if (auth()->attempt($input)) {
+                $token = auth()->user()->createToken('passport_token')->accessToken;
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'User login succesfully, Use token to authenticate.',
+                    'token' => $token
+                ], 200);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User authentication failed.'
+                ], 401);
+            }
+        }catch(\Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
         }
     }
 
@@ -339,9 +368,6 @@ class AuthController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        if ($user->role_id == 1) {
-            return response()->json(['message' => 'You Dont Delete Admin Account. '], 403);
-        }
 
         if ($user->status == 1) {
             $user->status = 0;
