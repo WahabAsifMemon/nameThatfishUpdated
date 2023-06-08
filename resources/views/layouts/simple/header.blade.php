@@ -1,6 +1,5 @@
 @php
     $user = auth()->user();
-    $role = $user ? \App\Models\Role::where('id', $user->role_id)->first() : null;
 @endphp
 
 <div class="page-header">
@@ -64,8 +63,8 @@
           <div class="media profile-media">
             <img class="b-r-10" src="{{asset('assets/images/dashboard/profile.jpg')}}" alt="">
             <div class="media-body">
-              <span>{{ $user ? $user->name : ''  }}</span>
-              <p class="mb-0 font-roboto">{{ $role ? $role->name : '' }}<i class="middle fa fa-angle-down"></i></p>
+            <span>{{ $user ? $user->name : '' }}</span>
+          <p class="mb-0 font-roboto">{{ $user ? $user->type : '' }}<i class="middle fa fa-angle-down"></i></p>
             </div>
           </div>
           <ul class="profile-dropdown onhover-show-div">

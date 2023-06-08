@@ -37,29 +37,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach(App\Models\User::all() as $user)
-                    @if($user->role_id == 2)
-                    <tr class="odd">
-                        <td class="sorting_1">{{$user->name}}</td>
-                        <td>{{$user->email}}</td>
-                        <td>{{$user->phone}}</td>
-                        <td>{{ $user->role_id }}</td>
-                        <td class="status-column">
-                            @if($user->status == 1)
-                                <button class="btn btn-success status-btn" data-user-id="{{ $user->id }}" data-status="0">
-                                    <i class="fas fa-thumbs-up"></i>
-                                </button>
-                            @else
-                                <button class="btn btn-danger status-btn" data-user-id="{{ $user->id }}" data-status="1">
-                                    <i class="fas fa-thumbs-down"></i>
-                                </button>
-                            @endif
-                        </td>
-
-                        <td>{{$user->created_at}}</td>
-                    </tr>
-                    @endif
-                    @endforeach
+                @foreach(App\Models\User::where('type', 'user')->get() as $user)
+                  <tr class="odd">
+                      <td class="sorting_1">{{$user->name}}</td>
+                      <td>{{$user->email}}</td>
+                      <td>{{$user->phone}}</td>
+                      <td>{{ $user->type }}</td>
+                      <td class="status-column">
+                          @if($user->status == 1)
+                              <button class="btn btn-success status-btn" data-user-id="{{ $user->id }}" data-status="0">
+                                  <i class="fas fa-thumbs-up"></i>
+                              </button>
+                          @else
+                              <button class="btn btn-danger status-btn" data-user-id="{{ $user->id }}" data-status="1">
+                                  <i class="fas fa-thumbs-down"></i>
+                              </button>
+                          @endif
+                      </td>
+                      <td>{{$user->created_at}}</td>
+                  </tr>
+              @endforeach
                 </tbody>
             </tbody>
         </table>

@@ -18,25 +18,25 @@ use App\Http\Controllers\Type;
 
 class AuthController extends Controller
 {
-    public function add_role(Request $request)
-    {
-        try {
-            $role = Role::create([
-                'name' => $request->role,
-                'guard_name' => 'api',
-            ]);
+    // public function add_role(Request $request)
+    // {
+    //     try {
+    //         $role = Role::create([
+    //             'name' => $request->role,
+    //             'guard_name' => 'api',
+    //         ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Role created successfully',
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Role created successfully',
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => $e->getMessage(),
+    //         ], 400);
+    //     }
+    // }
 
     public function register(Request $request)
     {
@@ -46,8 +46,7 @@ class AuthController extends Controller
             'phone' => 'required|string',
             'password' => 'required|string|min:6|confirmed',
             'password_confirmation' => 'required|string|min:6',
-            'roles' => 'required',
-        ]);
+            ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -75,12 +74,12 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password),
                 'phone' => $request->phone,
                 'dob' => $request->dob,
+                'type' => $request->type,
                 'address' => $request->address,
                 'status' => 1,
                 'user_img' => $request->user_img,
                 'device_token' => 'eHTHTrzYT_qw786ywVvida:APA91bEMNkQBG5fu0Fom2s17_mqygKhTmwDVk9lsHPYlUDPCD-29AXBn2JMG4yDaxxI3owsD8BBBx_maLQF4fPko7yRz8HNUxcmtgLemkfRqgPl5J-Ols7GMDmIb1qCHQVjQxHQbt3h2',
             ]);
-            $user->assignRole($request->input('roles'));
             $user->save();
             return response()->json(['message' => 'User has been registered '], 200);
         } catch (\Exception $e) {
@@ -105,75 +104,31 @@ class AuthController extends Controller
         }
         return response()->json(['message' => 'User created successfully']);
     }
-
-    public function login()
+    
+    public function login(Request $request)
     {
-        $credentials = request(['email', 'password']);
+        $credentials = $request->only('email', 'password');
+    
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
+    
             if ($user->status == 0) {
                 return response()->json(['error' => 'Unauthorized: Account deleted'], 401);
             }
-            $token = $user->createToken('MyApp')->accessToken;
+    
+            if ($user->type === 'admin') {
+                return response()->json(['error' => 'Unauthorized: Admin access denied'], 401);
+            }
+    
+            $token = $user->createToken('UserApp')->accessToken;
             return response()->json(['message' => 'User Profile', 'token' => $token], 200);
         } else {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
     }
-
-    public function loginadmin(Request $request)
-    {
-        $input = $request->only(['email', 'password']);
-
-        $validate_data = [
-            'email' => 'required|email',
-            'password' => 'required|min:8',
-        ];
-
-        $validator = Validator::make($input, $validate_data);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please see errors parameter for all errors.',
-                'errors' => $validator->errors()
-            ]);
-        }
-        
-        $use = User::where([
-        ['email', $request->email]  ,
-        ['type', 'admin']
-        ])->first();
-        if(empty($use)){
-            return response()->json([
-                'success' => false,
-                'message' => 'User authentication failed.'
-            ], 401);
-        }
-
-        try{
-            // authentication attempt
-            if (auth()->attempt($input)) {
-                $token = auth()->user()->createToken('passport_token')->accessToken;
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'User login succesfully, Use token to authenticate.',
-                    'token' => $token
-                ], 200);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User authentication failed.'
-                ], 401);
-            }
-        }catch(\Exception $e){
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 400);
-        }
-    }
+    
+    
+    
 
     public function profile()
     {

@@ -36,8 +36,7 @@
 							<div class="appointment-table table-responsive">
 								<table class="table table-bordernone">
 									<tbody>
-										@foreach(App\Models\User::all() as $user)
-											@if($user->role_id == 2)
+									@foreach(App\Models\User::where('type', 'user')->get() as $user)
 												<tr>
 													<td>
 														<img class="img-fluid img-40 rounded-circle mb-3" src="{{asset('assets/images/appointment/app-ent.jpg')}}" alt="Image description">
@@ -51,7 +50,6 @@
 														<div class="button btn btn-primary">Done<i class="fa fa-check-circle ms-2"></i></div>
 													</td>
 												</tr>
-											@endif
 										@endforeach
 									</tbody>
 								</table>

@@ -27,9 +27,6 @@ Route::group([
     Route::post('login', [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register']);
     Route::post('/google-login', [AuthController::class, 'googleLogin']);
-    Route::post('loginadmin', [AuthController::class, 'loginadmin']);
-
-
 });
 Route::middleware('auth:api')->group(function () {
 Route::get('logout', [AuthController::class, 'logout']);
@@ -39,7 +36,6 @@ Route::post('change-pass', [AuthController::class, 'changePass']);
 Route::post('mail', [AuthController::class, 'send']);
 Route::post('forgot-password', [AuthController::class, 'forgetPass']);
 Route::delete('user/{id}',  [AuthController::class, 'delete']);
-Route::post('add_role', [AuthController::class, 'add_role']);
 
 // Support Api
 Route::post('/support', [SupportController::class, 'create']);

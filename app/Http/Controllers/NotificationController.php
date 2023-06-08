@@ -9,12 +9,12 @@ class NotificationController extends Controller
 {
     public function sendNotification(Request $request)
     {
-        $adminFirebaseTokens = User::where('role_id', 1)->whereNotNull('device_token')->pluck('device_token')->all();
+        $usersWithTokens = User::whereNotNull('device_token')->pluck('device_token')->all();
             
         $SERVER_API_KEY = env('FCM_SERVER_KEY');
     
         $data = [
-            "registration_ids" => $adminFirebaseTokens,
+            "registration_ids" => $usersWithTokens,
             "notification" => [
                 "title" => $request->title,
                 "body" => $request->body,  
